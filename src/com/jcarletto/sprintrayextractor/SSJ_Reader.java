@@ -28,7 +28,7 @@ public class SSJ_Reader {
 
     public SSJ_Reader(File file) {
         System.out.println("Delim : " + new String(delimiter));
-        System.out.println("IEND : " + new String(IEND));
+        // System.out.println("IEND : " + new String(IEND));
 
         setSsjFile(file);
         openFile();

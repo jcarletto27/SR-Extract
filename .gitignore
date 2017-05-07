@@ -15,10 +15,10 @@
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 
-/deploy/
-/.idea/
-/target/
-/out/
+/deploy/*
+/.idea/*
+/target/*
+/out/*
 
 
 # Gradle:

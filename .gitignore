@@ -17,6 +17,8 @@
 
 /deploy/
 /.idea/
+/target/
+/out/
 
 
 # Gradle:

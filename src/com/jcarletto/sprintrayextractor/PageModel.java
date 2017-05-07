@@ -30,7 +30,8 @@ public class PageModel {
         return image;
     }
 
+
     public int numPages() {
-        return pngList.size()-1;
+        return pngList.size() - 1;
     }
 }

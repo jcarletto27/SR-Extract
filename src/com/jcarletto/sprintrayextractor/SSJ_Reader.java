@@ -4,6 +4,7 @@ package com.jcarletto.sprintrayextractor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,13 +28,17 @@ public class SSJ_Reader {
     private List<byte[]> pngBytes;
 
     public SSJ_Reader(File file) {
-        System.out.println("Delim : " + new String(delimiter));
+//        System.out.println("Delim : " + new String(delimiter));
         // System.out.println("IEND : " + new String(IEND));
 
         setSsjFile(file);
         openFile();
-        readFileContents();
+
+        System.out.println(pngBytes.size());
         pngBytes.remove(0);
+        //pngBytes.remove(getPngBytes().size()-1);
+       // readFileContents();
+        System.out.println(pngBytes.size());
 
 
     }
@@ -46,6 +51,18 @@ public class SSJ_Reader {
         this.pngBytes = pngBytes;
     }
 
+    public ByteArrayInputStream getStreamFromIndex(byte[] index) {
+
+        return new ByteArrayInputStream(index);
+    }
+
+    public File getSsjFile() {
+        return ssjFile;
+    }
+
+    private void setSsjFile(File ssjFile) {
+        this.ssjFile = ssjFile;
+    }
 
     private void openFile() {
 
@@ -59,7 +76,7 @@ public class SSJ_Reader {
     }
 
     private void readFileContents() {
-        for (int x = 1; x < pngBytes.size(); x++) {
+        for (int x = 0; x < pngBytes.size(); x++) {
             System.out.println(new String(pngBytes.get(x)));
         }
 
@@ -84,10 +101,6 @@ public class SSJ_Reader {
         }
         arrays.add(Arrays.copyOfRange(byteArray, begin, byteArray.length));
         return arrays;
-    }
-
-    private void setSsjFile(File ssjFile) {
-        this.ssjFile = ssjFile;
     }
 
 

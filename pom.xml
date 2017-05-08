@@ -30,8 +30,6 @@
         </dependency>
 
 
-
-
     </dependencies>
 
 
@@ -55,7 +53,7 @@
                 <configuration>
                     <mainClass>com.jcarletto.sprintrayextractor.Main</mainClass>
                     <verbose>true</verbose>
-                    <deployDir>${project.basedir}/</deployDir>
+                    <deployDir>${project.basedir}/target/</deployDir>
                     <vendor>Carletto</vendor>
                     <appName>SprintRay-Extractor</appName>
                 </configuration>

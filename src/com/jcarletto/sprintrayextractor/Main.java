@@ -12,8 +12,19 @@ import java.util.List;
 
 public class Main extends Application {
 
+    protected static Stage mainStage;
+    private static Stage stage;
+
     public static void main(String[] args) {
         launch(args);
+    }
+
+    public static Stage getStage() {
+        return mainStage;
+    }
+
+    public void setStage(Stage stage) {
+        mainStage = stage;
     }
 
     @Override
@@ -24,9 +35,10 @@ public class Main extends Application {
         Scene scene = new Scene(loader.load(), 1000, 800);
         List<Image> icons = new ArrayList<>();
         icons.add(new Image(getClass().getResourceAsStream("/Extract-object-icon.png")));
-        primaryStage.setTitle("SprintRay - *.ssj Extractor");
+        primaryStage.setTitle("SprintRay Extractor");
         primaryStage.getIcons().setAll(icons);
         primaryStage.setScene(scene);
+        setStage(primaryStage);
         primaryStage.show();
     }
 }

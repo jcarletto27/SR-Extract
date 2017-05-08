@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
@@ -12,7 +16,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="400.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jcarletto.sprintrayextractor.Controller">
+<VBox prefHeight="400.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jcarletto.sprintrayextractor.Controller">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -30,6 +34,7 @@
             <Menu mnemonicParsing="false" text="Settings">
                <items>
                   <MenuItem fx:id="menu_item_SaveSettings" mnemonicParsing="false" text="Save Printer Profile" />
+                  <MenuItem fx:id="menu_item_run_slide_show" mnemonicParsing="false" text="Run slideshow" />
                </items>
             </Menu>
       </menus>
@@ -37,10 +42,13 @@
     <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="354.0" prefWidth="640.0" VBox.vgrow="ALWAYS">
       <children>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="375.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="640.0" AnchorPane.topAnchor="0.0" />
-            <Pagination fx:id="pagination" layoutX="192.0" maxPageIndicatorCount="1" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0" />
+            <Pagination fx:id="pagination" layoutX="192.0" maxPageIndicatorCount="1" style="-fx-skin: 'com.jcarletto.sprintrayextractor.PaginationSkin'" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0" />
             <HBox alignment="CENTER" prefHeight="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
-                  <Label alignment="CENTER_RIGHT" minWidth="-Infinity" prefHeight="17.0" prefWidth="66.0" text="Name" />
+                  <Label alignment="CENTER_RIGHT" minWidth="-Infinity" prefHeight="17.0" prefWidth="66.0" text="Name">
+                     <padding>
+                        <Insets right="10.0" />
+                     </padding></Label>
                   <TextField fx:id="text_view_printer_name">
                      <HBox.margin>
                         <Insets left="10.0" right="10.0" />
@@ -66,6 +74,34 @@
                   </TextField>
                </children>
             </HBox>
+            <VBox layoutX="96.0" layoutY="325.0" prefHeight="50.0" prefWidth="346.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <children>
+                  <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                     <children>
+                        <Button fx:id="button_first_slice" mnemonicParsing="false" text="First Slice">
+                           <HBox.margin>
+                              <Insets left="10.0" right="10.0" />
+                           </HBox.margin>
+                        </Button>
+                        <Button fx:id="button_last_slice" mnemonicParsing="false" text="Last Slice">
+                           <HBox.margin>
+                              <Insets left="10.0" right="10.0" />
+                           </HBox.margin>
+                        </Button>
+                     </children>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0">
+                     <children>
+                        <ProgressBar fx:id="progress_bar" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" progress="0.0" HBox.hgrow="ALWAYS">
+                           <HBox.margin>
+                              <Insets />
+                           </HBox.margin>
+                        </ProgressBar>
+                        <Label fx:id="label_progress" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text=" 1/1 " />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
       </children>
     </AnchorPane>
   </children>

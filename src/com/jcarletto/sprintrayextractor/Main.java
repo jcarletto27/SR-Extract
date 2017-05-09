@@ -13,7 +13,20 @@ import java.util.List;
 public class Main extends Application {
 
     protected static Stage mainStage;
+    protected static Thread mainThread;
     private static Stage stage;
+
+    public static Thread getMainThread() {
+        return mainThread;
+    }
+
+    public static void setMainThread(Thread mainThread) {
+        Main.mainThread = mainThread;
+    }
+
+    public static void setMainStage(Stage mainStage) {
+        Main.mainStage = mainStage;
+    }
 
     public static void main(String[] args) {
         launch(args);
@@ -29,6 +42,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        setMainThread(Thread.currentThread());
         String resourcePath = "/extractor-main.fxml";
         URL location = getClass().getResource(resourcePath);
         FXMLLoader loader = new FXMLLoader(location);

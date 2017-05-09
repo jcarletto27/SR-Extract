@@ -97,7 +97,8 @@
                               <Insets />
                            </HBox.margin>
                         </ProgressBar>
-                        <Label fx:id="label_progress" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text=" 1/1 " />
+                        <Label fx:id="label_progress" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="             " />
+                        <Button fx:id="button_cancel" mnemonicParsing="false" text="Cancel" />
                      </children>
                   </HBox>
                </children>

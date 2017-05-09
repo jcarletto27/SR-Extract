@@ -7,6 +7,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -39,7 +40,9 @@ public class ImageHelper {
     }
 
     public BufferedImage resizeBaseImage(BufferedImage image, int targetWidth, int targetHeight) {
-        BufferedImage newImage = Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_WIDTH, targetWidth);
+
+
+        BufferedImage newImage = Scalr.resize(image, Scalr.Method.AUTOMATIC, Scalr.Mode.FIT_TO_WIDTH, targetWidth);
 
         return newImage;
     }
@@ -76,15 +79,53 @@ public class ImageHelper {
     }
 
 
-    public void process(ByteArrayInputStream imageData, int targetWidth, int targetHeight, int padding, File file) {
+    public void process(ByteArrayInputStream imageData, int targetWidth, int targetHeight, float scale, int padding, int antiAliasPasses, File file) {
         BufferedImage slice = getBufferedImageFromStream(imageData);
-        slice = antiAlias(slice);
-        slice = resizeBaseImage(slice, targetWidth, targetHeight);
+
+        Float scaledWidth = (float) targetWidth * scale;
+        Float scaledHeight = (float) targetHeight * scale;
+
+        slice = resizeBaseImage(slice, scaledWidth.intValue(), scaledHeight.intValue());
         slice = addPadding(slice, padding);
         slice = cropImage(slice, targetWidth, targetHeight);
 
+        for (int x = 0; x < antiAliasPasses; x++) {
+            slice = antiAlias(slice);
+        }
         writePNGFile(slice, file);
 
+    }
+
+    public byte[] processForZip(byte[] imageBytes, int targetWidth, int targetHeight, float scale, int padding, int antiAliasPasses) {
+        BufferedImage slice;
+
+
+        byte[] outBytes = {};
+        try {
+            Float scaledWidth = (float) targetWidth * scale;
+            Float scaledHeight = (float) targetHeight * scale;
+
+            slice = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            slice = resizeBaseImage(slice, scaledWidth.intValue(), scaledHeight.intValue());
+            slice = addPadding(slice, padding);
+            slice = cropImage(slice, targetWidth, targetHeight);
+
+            for (int x = 0; x < antiAliasPasses; x++) {
+                slice = antiAlias(slice);
+            }
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+            ImageIO.write(slice, "png", outputStream);
+            outputStream.flush();
+            outBytes = outputStream.toByteArray();
+            outputStream.close();
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return outBytes;
     }
 
 }

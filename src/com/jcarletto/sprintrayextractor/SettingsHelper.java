@@ -84,4 +84,37 @@ public class SettingsHelper {
     }
 
 
+    public String getSetting(String setting) {
+        Properties properties = new Properties();
+        InputStream inputStream = null;
+
+        try {
+            inputStream = new FileInputStream("config.properties");
+            properties.load(inputStream);
+            inputStream.close();
+            return properties.getProperty(setting);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public void putSetting(String setting, String value) {
+        Properties properties = new Properties();
+        OutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream("config.properties");
+            properties.setProperty(setting, value);
+            outputStream.flush();
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

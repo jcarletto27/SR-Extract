@@ -12,6 +12,10 @@ public class Printer {
     final String X_PIXELS = "xPixels";
     final String Y_PIXELS = "yPixels";
     final String SSJ_XY_RES = "SSJ_XY_RES";
+    final String ANTI_ALIAS_PASSES = "ANTI_ALIAS_PASSES";
+
+
+    private int antiAliasPasses = 0;
 
     private String printerName = "diy";
     private float printerXYRes = 100f;
@@ -20,7 +24,7 @@ public class Printer {
 
     private double ssjXPixels = 1280;
     private double ssjYPixels = 800;
-    private float ssjRes = 75f;
+    private float ssjRes = 100f;
 
 
     public Printer() {
@@ -32,9 +36,7 @@ public class Printer {
         setPrinterName(printerName);
         setxPixels(xPixels);
         setyPixels(yPixels);
-
     }
-
 
 
     public List<String[]> getPrinterSettings() {
@@ -44,6 +46,7 @@ public class Printer {
         list.add(new String[]{X_PIXELS, String.valueOf(getxPixels())});
         list.add(new String[]{Y_PIXELS, String.valueOf(getyPixels())});
         list.add(new String[]{SSJ_XY_RES, String.valueOf(getSsjRes())});
+        list.add(new String[]{ANTI_ALIAS_PASSES, String.valueOf(getAntiAliasPasses())});
         return list;
     }
 
@@ -64,6 +67,10 @@ public class Printer {
                     break;
                 case SSJ_XY_RES:
                     setSsjRes(Float.parseFloat(s[1]));
+                    break;
+                case ANTI_ALIAS_PASSES:
+                    setAntiAliasPasses(Integer.parseInt(s[1]));
+                    break;
             }
         }
     }
@@ -141,6 +148,21 @@ public class Printer {
         setSsjXPixels(xPixels);
         setSsjYPixels(yPixels);
         setSsjRes(ssjRes);
+    }
+
+    public int getAntiAliasPasses() {
+        return antiAliasPasses;
+    }
+
+    public void setAntiAliasPasses(int antiAliasPasses) {
+
+        this.antiAliasPasses = antiAliasPasses;
+    }
+
+
+    public float resScale() {
+
+        return (ssjRes / printerXYRes);
     }
 }
 

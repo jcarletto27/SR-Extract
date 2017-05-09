@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -18,78 +19,104 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class Controller implements Initializable {
+
     @FXML
     private MenuItem menu_item_Open;
-
     @FXML
     private MenuItem menu_item_Export_to_Folder;
-
     @FXML
     private MenuItem menu_item_Export_Zip;
-
     @FXML
     private MenuItem menu_item_Quit;
-
     @FXML
     private MenuItem menu_item_SaveSettings;
-
     @FXML
     private Pagination pagination;
-
     @FXML
     private TextField text_view_printer_name;
-
     @FXML
     private TextField text_view_x_pixels;
-
     @FXML
     private TextField text_view_y_pixels;
     @FXML
     private MenuItem menu_item_run_slide_show;
-
     @FXML
     private Button button_first_slice;
     @FXML
     private Button button_last_slice;
+    @FXML
+    private Label label_progress;
+    @FXML
+    private ProgressBar progress_bar;
+    @FXML
+    private Button button_cancel;
+    @FXML
+    private TextField text_view_resolution;
+
 
     private Task slideShow;
     private Task zipExport;
     private Task folderExport;
 
-    @FXML
-    private Label label_progress;
-    @FXML
-    private ProgressBar progress_bar;
-
-
     private PageModel model;
-
-    @FXML
-    private TextField text_view_resolution;
     private SSJ_Reader ssj_reader;
     private Printer printer;
+
     private SettingsHelper settingsHelper = new SettingsHelper();
     private ImageHelper imageHelper = new ImageHelper();
+    private ZipOutputStream zipOutputStream;
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+        text_view_resolution.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                printer.setPrinterXYRes(Float.parseFloat(newValue));
+
+            }
+        });
+
         printer = new Printer();
+
         fileNotLoaded();
-        // pagination.setMaxPageIndicatorCount(0);
+
+        button_cancel.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    zipExport.cancel();
+
+                } catch (Exception e) {
+
+                }
+                try {
+                    folderExport.cancel();
+                } catch (Exception e) {
+
+                }
+                pagination.setCurrentPageIndex(0);
+            }
+        });
 
 
         menu_item_Export_Zip.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-//                ZipHelper helper = new ZipHelper();
+
                 FileChooser saveFileDialog = new FileChooser();
                 saveFileDialog.setInitialDirectory(new File(System.getProperty("user.home") + "/Desktop"));
                 saveFileDialog.setTitle("Save this Export to .zip");
@@ -97,15 +124,78 @@ public class Controller implements Initializable {
                 File file = saveFileDialog.showSaveDialog(null);
                 if (file != null && ssj_reader.getSsjFile() != null) {
 
+                    try {
 
-                    zipExport = createExportZipWorker(file, ssj_reader.getPngBytes());
+                        zipOutputStream = new ZipOutputStream(new FileOutputStream(file));
+                        zipOutputStream.setLevel(1);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    zipExport = createExportZipWorker();
 
                     progress_bar.progressProperty().unbind();
                     progress_bar.progressProperty().bind(zipExport.progressProperty());
                     label_progress.textProperty().bind(zipExport.messageProperty());
 
-                    new Thread(zipExport).start();
 
+                    zipExport.setOnFailed(new EventHandler<WorkerStateEvent>() {
+                        @Override
+                        public void handle(WorkerStateEvent event) {
+                            button_cancel.setVisible(false);
+                            button_cancel.setDisable(true);
+                            progress_bar.progressProperty().unbind();
+                            progress_bar.progressProperty().setValue(0);
+                            label_progress.textProperty().unbind();
+                            label_progress.setText("");
+
+                        }
+                    });
+                    zipExport.setOnCancelled(new EventHandler<WorkerStateEvent>() {
+                        @Override
+                        public void handle(WorkerStateEvent event) {
+                            button_cancel.setVisible(false);
+                            button_cancel.setDisable(true);
+                            progress_bar.progressProperty().unbind();
+                            progress_bar.progressProperty().setValue(0);
+                            label_progress.textProperty().unbind();
+                            label_progress.setText("");
+
+                        }
+                    });
+
+
+                    zipExport.setOnRunning(new EventHandler<WorkerStateEvent>() {
+                        @Override
+                        public void handle(WorkerStateEvent event) {
+                            button_cancel.setDisable(false);
+                            button_cancel.setVisible(true);
+                        }
+                    });
+                    zipExport.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                        @Override
+                        public void handle(WorkerStateEvent event) {
+                            button_cancel.setVisible(false);
+                            button_cancel.setDisable(true);
+                            progress_bar.progressProperty().unbind();
+                            progress_bar.progressProperty().setValue(0);
+                            label_progress.textProperty().unbind();
+                            label_progress.setText("");
+
+
+                        }
+                    });
+
+
+                    zipExport.messageProperty().addListener(new ChangeListener<String>() {
+                        @Override
+                        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                            pagination.setCurrentPageIndex(Integer.parseInt(newValue.split("/")[0]));
+
+                        }
+                    });
+                    Thread worker = new Thread(zipExport);
+                    worker.start();
 
                 }
             }
@@ -114,7 +204,7 @@ public class Controller implements Initializable {
         menu_item_run_slide_show.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                System.out.println("Clicked run slideshow");
+
                 slideShow = createSlideShowWorker(pagination.getPageCount() - 1);
                 slideShow.messageProperty().addListener(new ChangeListener<String>() {
                     @Override
@@ -124,10 +214,12 @@ public class Controller implements Initializable {
                     }
                 });
                 new Thread(slideShow).start();
+
             }
         });
 
         menu_item_Export_Zip.setDisable(true);
+
 
         button_first_slice.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -156,13 +248,26 @@ public class Controller implements Initializable {
                 fileChooser.setTitle("Open ssj file");
                 fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Desktop"));
                 File file = fileChooser.showOpenDialog(null);
-                Stage primaryStage = Main.getStage();
-                primaryStage.setTitle("SprintRay Extractor - " + file.getName());
 
                 if (file != null) {
+                    Stage primaryStage = Main.getStage();
+                    primaryStage.setTitle("SprintRay Extractor - " + file.getName());
+
+
                     openFile(file);
                     setPaginationFactory(ssj_reader.getPngBytes());
                     fileLoaded();
+                    slideShow = createSlideShowWorker(pagination.getPageCount() - 1);
+                    slideShow.messageProperty().addListener(new ChangeListener<String>() {
+                        @Override
+                        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                            pagination.setCurrentPageIndex(Integer.parseInt(newValue));
+                        }
+                    });
+                    pagination.setCurrentPageIndex(0);
+                    new Thread(slideShow).start();
+
+
                 }
             }
         });
@@ -178,7 +283,71 @@ public class Controller implements Initializable {
                     File folder = directoryChooser.showDialog(null);
                     Image tempImage = model.getImage(pagination.getCurrentPageIndex());
                     if (folder != null) {
-                        processImages(printer, tempImage, folder);
+                        folderExport = createExportFolderWorker(printer, tempImage, folder, ssj_reader.getPngBytes().size());
+                        progress_bar.progressProperty().unbind();
+                        progress_bar.progressProperty().bind(folderExport.progressProperty());
+                        label_progress.textProperty().unbind();
+                        label_progress.textProperty().bind(folderExport.messageProperty());
+
+
+                        folderExport.setOnFailed(new EventHandler<WorkerStateEvent>() {
+                            @Override
+                            public void handle(WorkerStateEvent event) {
+                                button_cancel.setVisible(false);
+                                button_cancel.setDisable(true);
+                                progress_bar.progressProperty().unbind();
+                                progress_bar.progressProperty().setValue(0);
+                                label_progress.textProperty().unbind();
+                                label_progress.setText("");
+
+                            }
+                        });
+                        folderExport.setOnCancelled(new EventHandler<WorkerStateEvent>() {
+                            @Override
+                            public void handle(WorkerStateEvent event) {
+                                button_cancel.setVisible(false);
+                                button_cancel.setDisable(true);
+                                progress_bar.progressProperty().unbind();
+                                progress_bar.progressProperty().setValue(0);
+                                label_progress.textProperty().unbind();
+                                label_progress.setText("");
+
+                            }
+                        });
+
+
+                        folderExport.setOnRunning(new EventHandler<WorkerStateEvent>() {
+                            @Override
+                            public void handle(WorkerStateEvent event) {
+                                button_cancel.setDisable(false);
+                                button_cancel.setVisible(true);
+                            }
+                        });
+                        folderExport.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                            @Override
+                            public void handle(WorkerStateEvent event) {
+                                button_cancel.setVisible(false);
+                                button_cancel.setDisable(true);
+                                progress_bar.progressProperty().unbind();
+                                progress_bar.progressProperty().setValue(0);
+                                label_progress.textProperty().unbind();
+                                label_progress.setText("");
+
+
+                            }
+                        });
+
+
+                        folderExport.messageProperty().addListener(new ChangeListener<String>() {
+                            @Override
+                            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                                pagination.setCurrentPageIndex(Integer.parseInt(newValue.split("/")[0]));
+
+                            }
+                        });
+                        Thread worker = new Thread(folderExport);
+                        worker.start();
+
                     }
 
                 }
@@ -198,27 +367,27 @@ public class Controller implements Initializable {
 
     }
 
-    private void processImages(Printer printer, Image image, File folder) {
-        for (int x = 0; x < ssj_reader.getPngBytes().size() - 1; x++) {
-            byte[] b = ssj_reader.getPngBytes().get(x);
-            String fileName = String.format("%05d", x + 1) + ".png";
-            int padding = imageHelper.getPaddingValue(image.getHeight(), printer.getyPixels());
-            //System.out.println("Padding Value : " + padding);
-            Path path = Paths.get(folder.getPath(), fileName);
-            File pngFile = path.toFile();
-            Double xPixels = printer.getxPixels();
-            Double yPixels = printer.getyPixels();
+    private void processImages(Printer printer, Image image, int index, File folder) {
 
-            try {
-                if (!pngFile.exists()) {
-                    imageHelper.process(ssj_reader.getStreamFromIndex(b), xPixels.intValue(), yPixels.intValue(), padding, pngFile);
-                }
-            } catch (IllegalArgumentException e) {
-                System.out.println("Slice # " + x + " could not be exported. Something went wrong!");
-                //e.printStackTrace();
+        byte[] b = ssj_reader.getPngBytes().get(index);
+        String fileName = String.format("%05d", index + 1) + ".png";
+        int padding = imageHelper.getPaddingValue(image.getHeight(), printer.getyPixels());
+        //System.out.println("Padding Value : " + padding);
+        Path path = Paths.get(folder.getPath(), fileName);
+        File pngFile = path.toFile();
+        Double xPixels = printer.getxPixels();
+        Double yPixels = printer.getyPixels();
+
+        try {
+            if (!pngFile.exists()) {
+                imageHelper.process(ssj_reader.getStreamFromIndex(b), xPixels.intValue(), yPixels.intValue(), printer.resScale(), padding, printer.getAntiAliasPasses(), pngFile);
             }
-
+        } catch (IllegalArgumentException e) {
+            System.out.println("Slice # " + index + " could not be exported. Something went wrong!");
+            //e.printStackTrace();
         }
+
+
     }
 
     private void setPaginationFactory(List<byte[]> pngBytes) {
@@ -270,27 +439,35 @@ public class Controller implements Initializable {
         menu_item_Export_to_Folder.setDisable(false);
         menu_item_Export_Zip.setDisable(false);
         menu_item_run_slide_show.setDisable(false);
+        button_first_slice.setDisable(false);
+        button_last_slice.setDisable(false);
     }
 
     private void fileNotLoaded() {
+        button_first_slice.setDisable(true);
+        button_last_slice.setDisable(true);
+        button_cancel.setDisable(true);
+        button_cancel.setVisible(false);
         menu_item_Export_to_Folder.setDisable(true);
         menu_item_Export_Zip.setDisable(true);
         menu_item_run_slide_show.setDisable(true);
     }
 
     public Task createSlideShowWorker(final int upperValue) {
-        System.out.println("in worker");
+
         return new Task() {
 
             @Override
             protected Object call() throws Exception {
 
                 for (int x = 0; x < upperValue; x++) {
-                    Thread.sleep(15);
+                    Thread.sleep(2);
                     updateMessage(String.valueOf(x));
                     updateProgress(x + 1, upperValue);
 
                 }
+                Thread.sleep(200);
+                updateMessage(String.valueOf(0));
                 return true;
             }
         };
@@ -304,10 +481,13 @@ public class Controller implements Initializable {
             protected Object call() throws Exception {
 
                 for (int x = 0; x < pngBytesSize - 1; x++) {
-                    Thread.sleep(1000);
-                    processImages(printer, image, file);
-                    updateMessage(String.valueOf(x));
-                    updateProgress(x + 1, 1);
+                    if (isCancelled()) {
+                        break;
+                    }
+                    updateProgress(x + 1, pngBytesSize);
+                    processImages(printer, image, x, file);
+                    updateMessage(String.valueOf(x) + "/" + pngBytesSize);
+
 
                 }
                 return true;
@@ -315,25 +495,48 @@ public class Controller implements Initializable {
         };
     }
 
-    public Task createExportZipWorker(final File file, final List<byte[]> pngBytes) {
+    public Task createExportZipWorker() {
 
         return new Task() {
 
             @Override
             protected Object call() throws Exception {
-                ZipHelper helper = new ZipHelper();
-                helper.zip(file, pngBytes);
-                for (int x = 0; x < pngBytes.size() - 1; x++) {
-                    Thread.sleep(1);
-                    updateMessage(String.valueOf(x) + "/" + String.valueOf(pngBytes.size() - 1));
 
 
-                    updateProgress(x + 1, 1);
+                for (int x = 0; x < ssj_reader.getPngBytes().size() - 1; x++) {
+                    if (isCancelled()) {
+                        break;
+                    }
+                    try {
+                        String fileName = String.format("%05d", x + 1) + ".png";
+                        zipOutputStream.putNextEntry(new ZipEntry(fileName));
+                        ImageHelper helper = new ImageHelper();
+                        Double xPixels = printer.getxPixels();
+                        Double yPixels = printer.getyPixels();
+                        int padding = helper.getPaddingValue(model.getImage(pagination.getCurrentPageIndex()).getHeight(), yPixels);
+
+
+                        zipOutputStream.write(helper.processForZip(ssj_reader.getPngBytes().get(x), xPixels.intValue(), yPixels.intValue(), printer.resScale(), padding, printer.getAntiAliasPasses()));
+                        //zipOutputStream.write(ssj_reader.getPngBytes().get(x));
+                        zipOutputStream.closeEntry();
+
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    updateMessage(String.valueOf(x + 1) + "/" + String.valueOf(ssj_reader.getPngBytes().size() - 1));
+                    updateProgress(x + 1, ssj_reader.getPngBytes().size());
 
                 }
+
+                zipOutputStream.close();
                 return true;
             }
-        };
+        }
+
+                ;
     }
 
     private void openFile(File file) {

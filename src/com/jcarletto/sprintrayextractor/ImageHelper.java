@@ -82,8 +82,8 @@ public class ImageHelper {
     public void process(ByteArrayInputStream imageData, int targetWidth, int targetHeight, float scale, int padding, int antiAliasPasses, File file) {
         BufferedImage slice = getBufferedImageFromStream(imageData);
 
-        Float scaledWidth = (float) targetWidth * scale;
-        Float scaledHeight = (float) targetHeight * scale;
+        Float scaledWidth = (float) slice.getWidth() * scale;
+        Float scaledHeight = (float) slice.getHeight() * scale;
 
         slice = resizeBaseImage(slice, scaledWidth.intValue(), scaledHeight.intValue());
         slice = addPadding(slice, padding);
@@ -102,10 +102,13 @@ public class ImageHelper {
 
         byte[] outBytes = {};
         try {
-            Float scaledWidth = (float) targetWidth * scale;
-            Float scaledHeight = (float) targetHeight * scale;
+
 
             slice = ImageIO.read(new ByteArrayInputStream(imageBytes));
+
+            Float scaledWidth = (float) slice.getWidth() * scale;
+            Float scaledHeight = (float) slice.getHeight() * scale;
+
             slice = resizeBaseImage(slice, scaledWidth.intValue(), scaledHeight.intValue());
             slice = addPadding(slice, padding);
             slice = cropImage(slice, targetWidth, targetHeight);

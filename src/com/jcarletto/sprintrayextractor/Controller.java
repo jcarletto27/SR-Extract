@@ -17,6 +17,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,8 +45,7 @@ public class Controller implements Initializable {
     private MenuItem menu_item_SaveSettings;
     @FXML
     private Pagination pagination;
-    @FXML
-    private TextField text_view_printer_name;
+
     @FXML
     private TextField text_view_x_pixels;
     @FXML
@@ -53,9 +53,7 @@ public class Controller implements Initializable {
     @FXML
     private MenuItem menu_item_run_slide_show;
     @FXML
-    private Button button_first_slice;
-    @FXML
-    private Button button_last_slice;
+    private Slider slider_slice_picker;
     @FXML
     private Label label_progress;
     @FXML
@@ -64,7 +62,15 @@ public class Controller implements Initializable {
     private Button button_cancel;
     @FXML
     private TextField text_view_resolution;
-
+    @FXML
+    private TextField text_view_file_x_pixels;
+    @FXML
+    private TextField text_view_file_y_pixels;
+    @FXML
+    private TextField text_view_file_resolution;
+    @FXML
+    private CheckMenuItem check_menu_item_play_slideshow_automatically;
+    private boolean autoPlaySlideShow = true;
 
     private Task slideShow;
     private Task zipExport;
@@ -72,6 +78,7 @@ public class Controller implements Initializable {
 
     private PageModel model;
     private SSJ_Reader ssj_reader;
+    private Zip_Reader zip_reader;
     private Printer printer;
 
     private SettingsHelper settingsHelper = new SettingsHelper();
@@ -81,6 +88,20 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        slider_slice_picker.valueProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+
+                pagination.setCurrentPageIndex(newValue.intValue());
+            }
+        });
+
+        pagination.currentPageIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                slider_slice_picker.valueProperty().setValue(newValue);
+            }
+        });
 
         text_view_resolution.textProperty().addListener(new ChangeListener<String>() {
             @Override
@@ -91,6 +112,13 @@ public class Controller implements Initializable {
         });
 
         printer = new Printer();
+
+        check_menu_item_play_slideshow_automatically.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                autoPlaySlideShow = newValue;
+            }
+        });
 
         fileNotLoaded();
 
@@ -123,7 +151,12 @@ public class Controller implements Initializable {
                 saveFileDialog.getExtensionFilters().add(new FileChooser.ExtensionFilter("Zip Files", "*.zip"));
                 File file = saveFileDialog.showSaveDialog(null);
                 if (file != null && ssj_reader.getSsjFile() != null) {
+                    if (file.isDirectory()) {
+                        printer.setLastSaveLocation(file.getAbsolutePath());
 
+                    } else {
+                        printer.setLastSaveLocation(file.getParent());
+                    }
                     try {
 
                         zipOutputStream = new ZipOutputStream(new FileOutputStream(file));
@@ -221,20 +254,6 @@ public class Controller implements Initializable {
         menu_item_Export_Zip.setDisable(true);
 
 
-        button_first_slice.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                pagination.setCurrentPageIndex(0);
-
-            }
-        });
-        button_last_slice.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                pagination.setCurrentPageIndex(pagination.getPageCount() - 1);
-            }
-        });
-
         initPrinterSettings();
 
 
@@ -244,31 +263,86 @@ public class Controller implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 FileChooser fileChooser = new FileChooser();
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("SSJ File, Zip File", "*.ssj", "*.zip"));
                 fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("SSJ File", "*.ssj"));
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("ZIP file", "*.zip"));
                 fileChooser.setTitle("Open ssj file");
-                fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Desktop"));
+                fileChooser.setInitialDirectory(new File(printer.getLastOpenLocation()));
                 File file = fileChooser.showOpenDialog(null);
 
                 if (file != null) {
-                    Stage primaryStage = Main.getStage();
-                    primaryStage.setTitle("SprintRay Extractor - " + file.getName());
+                    if (file.isDirectory()) {
+                        printer.setLastOpenLocation(file.getAbsolutePath());
+                    } else {
+                        printer.setLastOpenLocation(file.getParent());
+                    }
+                    if (FilenameUtils.getExtension(file.getName()).contentEquals("ssj")) {
 
 
-                    openFile(file);
-                    setPaginationFactory(ssj_reader.getPngBytes());
-                    fileLoaded();
-                    slideShow = createSlideShowWorker(pagination.getPageCount() - 1);
-                    slideShow.messageProperty().addListener(new ChangeListener<String>() {
-                        @Override
-                        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                            pagination.setCurrentPageIndex(Integer.parseInt(newValue));
+                        Stage primaryStage = Main.getStage();
+                        primaryStage.setTitle("SprintRay Extractor - " + file.getName());
+
+
+                        openSSJFile(file);
+                        setPaginationFactory(ssj_reader.getPngBytes());
+                        fileLoaded();
+                        slideShow = createSlideShowWorker(pagination.getPageCount() - 1);
+                        slideShow.messageProperty().addListener(new ChangeListener<String>() {
+                            @Override
+                            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                                pagination.setCurrentPageIndex(Integer.parseInt(newValue));
+                            }
+                        });
+                        pagination.setCurrentPageIndex(0);
+                        int pages = pagination.getPageCount();
+                        slider_slice_picker.setMax((double) pages);
+                        if (pages / 10 > 1) {
+                            slider_slice_picker.setShowTickMarks(true);
+                            slider_slice_picker.setMajorTickUnit((double) (pages / 10));
+                        } else {
+                            slider_slice_picker.setShowTickMarks(false);
                         }
-                    });
-                    pagination.setCurrentPageIndex(0);
-                    new Thread(slideShow).start();
 
 
+                        if (autoPlaySlideShow) {
+                            new Thread(slideShow).start();
+                        }
+                    } else if (FilenameUtils.getExtension(file.getName()).contentEquals("zip")) {
+
+                        Stage primaryStage = Main.getStage();
+                        primaryStage.setTitle("SprintRay Extractor - " + file.getName());
+
+
+                        openZip(file);
+
+                        setPaginationFactory(zip_reader.getPngBytes());
+
+                        fileLoaded();
+
+                        slideShow = createSlideShowWorker(pagination.getPageCount() - 1);
+
+                        slideShow.messageProperty().addListener(new ChangeListener<String>() {
+                            @Override
+                            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                                pagination.setCurrentPageIndex(Integer.parseInt(newValue));
+                            }
+                        });
+
+                        pagination.setCurrentPageIndex(0);
+                        int pages = pagination.getPageCount();
+                        slider_slice_picker.setMax((double) pages);
+                        if (pages / 10 > 1) {
+                            slider_slice_picker.setShowTickMarks(true);
+                            slider_slice_picker.setMajorTickUnit((double) (pages / 10));
+                        } else {
+                            slider_slice_picker.setShowTickMarks(false);
+                        }
+                        if (autoPlaySlideShow) {
+                            new Thread(slideShow).start();
+                        }
+                    }
                 }
+                settingsHelper.writeProps(printer.getPrinterSettings());
             }
         });
 
@@ -276,13 +350,20 @@ public class Controller implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 if (ssj_reader.getSsjFile() != null) {
+
                     System.out.println("Total number of records : " + ssj_reader.getPngBytes().size());
                     DirectoryChooser directoryChooser = new DirectoryChooser();
-                    directoryChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Desktop"));
+                    directoryChooser.setInitialDirectory(new File(printer.getLastSaveLocation()));
                     directoryChooser.setTitle("Please choose a directory for export");
                     File folder = directoryChooser.showDialog(null);
                     Image tempImage = model.getImage(pagination.getCurrentPageIndex());
                     if (folder != null) {
+
+                        if (folder.isDirectory()) {
+                            printer.setLastSaveLocation(folder.getAbsolutePath());
+                        } else {
+                            printer.setLastSaveLocation(folder.getParent());
+                        }
                         folderExport = createExportFolderWorker(printer, tempImage, folder, ssj_reader.getPngBytes().size());
                         progress_bar.progressProperty().unbind();
                         progress_bar.progressProperty().bind(folderExport.progressProperty());
@@ -345,6 +426,7 @@ public class Controller implements Initializable {
 
                             }
                         });
+                        settingsHelper.writeProps(printer.getPrinterSettings());
                         Thread worker = new Thread(folderExport);
                         worker.start();
 
@@ -356,15 +438,21 @@ public class Controller implements Initializable {
         menu_item_SaveSettings.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                printer.setPrinterName(text_view_printer_name.getText());
+
                 printer.setxPixels(Double.parseDouble(text_view_x_pixels.getText()));
                 printer.setyPixels(Double.parseDouble(text_view_y_pixels.getText()));
                 printer.setPrinterXYRes(Float.parseFloat(text_view_resolution.getText()));
+                printer.setSSJProps(Double.parseDouble(text_view_file_x_pixels.getText()), Double.parseDouble(text_view_file_y_pixels.getText()), Float.parseFloat(text_view_file_resolution.getText()));
+                printer.setAutoPlay(autoPlaySlideShow);
                 settingsHelper.writeProps(printer.getPrinterSettings());
             }
         });
 
 
+    }
+
+    private void openZip(File file) {
+        zip_reader = new Zip_Reader(file);
     }
 
     private void processImages(Printer printer, Image image, int index, File folder) {
@@ -402,10 +490,6 @@ public class Controller implements Initializable {
                 view.setFitWidth(pagination.getWidth());
 
 
-     /*           float currentRes = imageHelper.getXYRes((float) view.getImage().getWidth(), (float) 96);
-                double currentDimension = view.getImage().getWidth();
-                double newDim = printer.newImageDimension(currentRes, currentDimension);
-               */
                 view.setFitHeight(pagination.getHeight());
 
 
@@ -420,17 +504,19 @@ public class Controller implements Initializable {
         printer.setPrinterSettings(settingsHelper.readProps());
         if (printer.getPrinterName() != "" || printer.getPrinterName() != null) {
 
+            text_view_file_resolution.setText(String.valueOf(printer.getSsjRes()));
+            text_view_file_x_pixels.setText(String.valueOf(printer.getSsjXPixels()));
+            text_view_file_y_pixels.setText(String.valueOf(printer.getSsjYPixels()));
 
-            text_view_printer_name.setText(printer.getPrinterName().toString());
+            check_menu_item_play_slideshow_automatically.setSelected(printer.getAutoPlaySlideShow());
+
             text_view_resolution.setText(String.valueOf(printer.getPrinterXYRes()));
             text_view_x_pixels.setText(String.valueOf(printer.getxPixels()));
             text_view_y_pixels.setText(String.valueOf(printer.getyPixels()));
         } else {
             //defaults
-            printer.setxPixels(1920d);
-            printer.setyPixels(1080d);
-            printer.setPrinterName("DIY");
-            printer.setPrinterXYRes(100.0f);
+            printer.setDefaults();
+            initPrinterSettings();
         }
 
     }
@@ -439,13 +525,13 @@ public class Controller implements Initializable {
         menu_item_Export_to_Folder.setDisable(false);
         menu_item_Export_Zip.setDisable(false);
         menu_item_run_slide_show.setDisable(false);
-        button_first_slice.setDisable(false);
-        button_last_slice.setDisable(false);
+        slider_slice_picker.setDisable(false);
+        //check_menu_item_play_slideshow_automatically.setDisable(false);
     }
 
     private void fileNotLoaded() {
-        button_first_slice.setDisable(true);
-        button_last_slice.setDisable(true);
+        // check_menu_item_play_slideshow_automatically.setDisable(true);
+        slider_slice_picker.setDisable(true);
         button_cancel.setDisable(true);
         button_cancel.setVisible(false);
         menu_item_Export_to_Folder.setDisable(true);
@@ -539,7 +625,7 @@ public class Controller implements Initializable {
                 ;
     }
 
-    private void openFile(File file) {
+    private void openSSJFile(File file) {
         ssj_reader = new SSJ_Reader(file);
     }
 }

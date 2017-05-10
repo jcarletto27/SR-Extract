@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="400.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jcarletto.sprintrayextractor.Controller">
+<VBox prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jcarletto.sprintrayextractor.Controller">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -33,72 +33,104 @@
         </Menu>
             <Menu mnemonicParsing="false" text="Settings">
                <items>
+                  <Menu mnemonicParsing="false" text="SlideShow">
+                    <items>
+                        <CheckMenuItem fx:id="check_menu_item_play_slideshow_automatically" mnemonicParsing="false" text="Play slideshow automatically?" />
+                        <MenuItem fx:id="menu_item_run_slide_show" mnemonicParsing="false" text="Run slideshow" />
+                    </items>
+                  </Menu>
                   <MenuItem fx:id="menu_item_SaveSettings" mnemonicParsing="false" text="Save Printer Profile" />
-                  <MenuItem fx:id="menu_item_run_slide_show" mnemonicParsing="false" text="Run slideshow" />
                </items>
             </Menu>
       </menus>
     </MenuBar>
     <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="354.0" prefWidth="640.0" VBox.vgrow="ALWAYS">
       <children>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="375.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="640.0" AnchorPane.topAnchor="0.0" />
-            <Pagination fx:id="pagination" layoutX="192.0" maxPageIndicatorCount="1" style="-fx-skin: 'com.jcarletto.sprintrayextractor.PaginationSkin'" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0" />
-            <HBox alignment="CENTER" prefHeight="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            <Pagination fx:id="pagination" layoutX="192.0" maxPageIndicatorCount="1" style="-fx-skin: 'com.jcarletto.sprintrayextractor.PaginationSkin'" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="55.0" />
+            <VBox alignment="CENTER_LEFT" maxHeight="100.0" minHeight="-Infinity" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
-                  <Label alignment="CENTER_RIGHT" minWidth="-Infinity" prefHeight="17.0" prefWidth="66.0" text="Name">
-                     <padding>
-                        <Insets right="10.0" />
-                     </padding></Label>
-                  <TextField fx:id="text_view_printer_name">
-                     <HBox.margin>
-                        <Insets left="10.0" right="10.0" />
-                     </HBox.margin>
-                  </TextField>
-                  <Label alignment="CENTER_RIGHT" minWidth="-Infinity" prefHeight="17.0" prefWidth="66.0" text="X Pixels" />
-                  <TextField fx:id="text_view_x_pixels">
-                     <HBox.margin>
-                        <Insets left="10.0" right="10.0" />
-                     </HBox.margin>
-                  </TextField>
-                  <Label alignment="CENTER_RIGHT" minWidth="-Infinity" prefHeight="17.0" prefWidth="66.0" text="Y Pixels" />
-                  <TextField fx:id="text_view_y_pixels">
-                     <HBox.margin>
-                        <Insets left="10.0" right="10.0" />
-                     </HBox.margin>
-                  </TextField>
-                  <Label alignment="CENTER_RIGHT" minWidth="-Infinity" prefHeight="17.0" prefWidth="66.0" text="Resolution" />
-                  <TextField fx:id="text_view_resolution">
-                     <HBox.margin>
-                        <Insets left="10.0" right="10.0" />
-                     </HBox.margin>
-                  </TextField>
-               </children>
-            </HBox>
-            <VBox layoutX="96.0" layoutY="325.0" prefHeight="50.0" prefWidth="346.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-               <children>
-                  <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                  <HBox alignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Button fx:id="button_first_slice" mnemonicParsing="false" text="First Slice">
+                        <VBox alignment="CENTER_RIGHT" maxWidth="-Infinity" prefWidth="70.0">
+                           <children>
+                              <Label alignment="CENTER_RIGHT" minHeight="25.0" minWidth="-Infinity" text="Projector X" />
+                              <Label alignment="CENTER_RIGHT" minHeight="25.0" text="File X" />
+                           </children>
                            <HBox.margin>
                               <Insets left="10.0" right="10.0" />
                            </HBox.margin>
-                        </Button>
-                        <Button fx:id="button_last_slice" mnemonicParsing="false" text="Last Slice">
+                        </VBox>
+                        <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                           <children>
+                              <TextField fx:id="text_view_x_pixels" text="text_view_x_pixels" />
+                              <TextField fx:id="text_view_file_x_pixels" text="text_view_file_x_pixels" />
+                           </children>
+                        </VBox>
+                        <VBox alignment="CENTER_RIGHT" maxWidth="-Infinity" prefWidth="70.0" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Label alignment="CENTER_RIGHT" minHeight="25.0" minWidth="-Infinity" text="Projector Y" />
+                              <Label alignment="CENTER_RIGHT" minHeight="25.0" text="File Y" />
+                           </children>
                            <HBox.margin>
                               <Insets left="10.0" right="10.0" />
                            </HBox.margin>
-                        </Button>
+                        </VBox>
+                        <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                           <children>
+                              <TextField fx:id="text_view_y_pixels" text="text_view_y_pixels" />
+                              <TextField fx:id="text_view_file_y_pixels" text="text_view_file_y_pixels" />
+                           </children>
+                        </VBox>
+                        <VBox alignment="CENTER_RIGHT" maxWidth="-Infinity" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Label alignment="CENTER_RIGHT" minHeight="25.0" minWidth="-Infinity" text="Printer Micron/Pixel" />
+                              <Label alignment="CENTER_RIGHT" minHeight="25.0" minWidth="-Infinity" text="File Micron/Pixel" />
+                           </children>
+                           <HBox.margin>
+                              <Insets left="10.0" right="10.0" />
+                           </HBox.margin>
+                        </VBox>
+                        <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                           <children>
+                              <TextField fx:id="text_view_resolution" maxWidth="1.7976931348623157E308" text="text_view_resolution" />
+                              <TextField fx:id="text_view_file_resolution" maxWidth="1.7976931348623157E308" text="text_view_file_resolution" />
+                           </children>
+                           <HBox.margin>
+                              <Insets right="10.0" />
+                           </HBox.margin>
+                        </VBox>
                      </children>
                   </HBox>
+               </children>
+            </VBox>
+            <VBox layoutX="96.0" layoutY="325.0" prefHeight="50.0" prefWidth="346.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <children>
+                  <VBox>
+                     <children>
+                        <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                           <children>
+                              <Slider fx:id="slider_slice_picker" blockIncrement="1.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" showTickMarks="true" HBox.hgrow="ALWAYS">
+                                 <HBox.margin>
+                                    <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
+                                 </HBox.margin>
+                              </Slider>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
                   <HBox prefHeight="100.0" prefWidth="200.0">
                      <children>
                         <ProgressBar fx:id="progress_bar" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" progress="0.0" HBox.hgrow="ALWAYS">
                            <HBox.margin>
-                              <Insets />
+                              <Insets left="5.0" />
                            </HBox.margin>
                         </ProgressBar>
                         <Label fx:id="label_progress" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="             " />
-                        <Button fx:id="button_cancel" mnemonicParsing="false" text="Cancel" />
+                        <Button fx:id="button_cancel" mnemonicParsing="false" text="Cancel">
+                           <HBox.margin>
+                              <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                           </HBox.margin></Button>
                      </children>
                   </HBox>
                </children>

@@ -6,7 +6,7 @@
 
     <groupId>com.jcarletto</groupId>
     <artifactId>SprintRay-Extractor</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-RELEASE</version>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-io -->
@@ -53,7 +53,7 @@
                 <configuration>
                     <mainClass>com.jcarletto.sprintrayextractor.Main</mainClass>
                     <verbose>true</verbose>
-                    <deployDir>${project.basedir}/target/</deployDir>
+                    <deployDir>${project.basedir}/</deployDir>
                     <vendor>Carletto</vendor>
                     <appName>SprintRay-Extractor</appName>
                 </configuration>

@@ -22,9 +22,9 @@ public class PageModel {
         this.pngList = pngList;
     }
 
-    public Image getImage(int pageNumeber) {
-        //pngList.get(pageNumeber);
-        ByteArrayInputStream stream = new ByteArrayInputStream(pngList.get(pageNumeber));
+    public Image getImage(int pageNumber) {
+        //pngList.get(pageNumber);
+        ByteArrayInputStream stream = new ByteArrayInputStream(pngList.get(pageNumber));
         Image image = new Image(stream);
 
         return image;

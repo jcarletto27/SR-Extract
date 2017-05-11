@@ -1,6 +1,8 @@
 package com.jcarletto.sprintrayextractor.Util;
 
 
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
@@ -48,7 +50,7 @@ public class ImageHelper {
     }
 
     public BufferedImage addPadding(BufferedImage image, int padding) {
-        BufferedImage bufferedImage = Scalr.pad(image, padding, Color.BLACK);
+        BufferedImage bufferedImage = Scalr.pad(image, padding, java.awt.Color.BLACK);
 
         return bufferedImage;
     }
@@ -96,11 +98,9 @@ public class ImageHelper {
     }
 
     public double scaleImageForScreen(float imageRes) {
-        //System.out.println("Screen width in pixesl " + getScreenWidthInPixels());
-        //System.out.println("Screen width in mm " + getScreenWidthInMM());
 
         double scaleRes = (getScreenWidthInMM() * 1000) / getScreenWidthInPixels();
-        //System.out.println("monitor res " + scaleRes);
+
         return imageRes / scaleRes;
     }
 
@@ -158,4 +158,28 @@ public class ImageHelper {
         return outBytes;
     }
 
+    public int countPixelsOfAColor(Image image, Color color) {
+        int count = 0;
+        // System.out.println("Width = " + image.getWidth() + "  Height = " + image.getHeight());
+        for (int w = 0; w < image.getWidth(); w++) {
+            for (int h = 0; h < image.getHeight(); h++) {
+                Color c = image.getPixelReader().getColor(w, h);
+                if (c.equals(color)) {
+                    count++;
+                }
+
+            }
+        }
+
+
+        return count;
+    }
+
+    public double areaOfPixelsInMMSq(int pixelCount, float res) {
+
+        double out = (res * Math.sqrt(pixelCount)) / 1000;
+        return Math.pow(out, 2);
+    }
+
 }
+//.01

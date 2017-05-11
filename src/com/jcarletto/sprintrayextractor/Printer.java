@@ -10,12 +10,13 @@ import java.util.List;
 public class Printer {
     final String ANTI_ALIAS_PASSES = "ANTI_ALIAS_PASSES";
 
-    final String PRINTER_NAME = "Printer_Name";
+    final String PRINTER_NAME = "PRINTER_NAME";
     final String XY_RES = "XYRES";
     final String X_PIXELS = "XPIXELS";
     final String Y_PIXELS = "YPIXELS";
     final String AUTOPLAY_SLIDESHOW = "AUTOPLAY_SLIDESHOW";
     final String REALISTIC_SCALING = "REALISTIC_SCALING";
+    final String INCLUDE_JSON = "INCLUDE_JSON";
 
 
     final String SSJ_Y_PIXELS = "SSJ_Y_PIXELS";
@@ -37,10 +38,11 @@ public class Printer {
 
     private boolean autoPlay = true;
     private boolean realisticScaling = true;
+    private boolean includeJson = true;
 
     private double ssjXPixels = 1280;
     private double ssjYPixels = 800;
-    private float ssjRes = 100f;
+    private float ssjRes = 75f;
 
 
     public Printer() {
@@ -70,6 +72,7 @@ public class Printer {
 
     public List<String[]> getPrinterSettings() {
         List<String[]> list = new ArrayList<>();
+
         list.add(new String[]{PRINTER_NAME, getPrinterName()});
         list.add(new String[]{XY_RES, String.valueOf(getPrinterXYRes())});
         list.add(new String[]{X_PIXELS, String.valueOf(getxPixels())});
@@ -83,6 +86,7 @@ public class Printer {
 
         list.add(new String[]{AUTOPLAY_SLIDESHOW, String.valueOf(getAutoPlaySlideShow())});
         list.add(new String[]{REALISTIC_SCALING, String.valueOf(getRealisticScaling())});
+        list.add(new String[]{INCLUDE_JSON, String.valueOf(getIncludeJson())});
 
         list.add(new String[]{LAST_OPEN_LOCATION, String.valueOf(getLastOpenLocation())});
         list.add(new String[]{LAST_SAVE_LOCATION, String.valueOf(getLastSaveLocation())});
@@ -121,6 +125,9 @@ public class Printer {
                     break;
                 case REALISTIC_SCALING:
                     setRealisticScaling(Boolean.parseBoolean(s[1]));
+                    break;
+                case INCLUDE_JSON:
+                    setIncludeJson(Boolean.parseBoolean(s[1]));
                     break;
             }
         }
@@ -251,5 +258,12 @@ public class Printer {
     }
 
 
+    public boolean getIncludeJson() {
+        return includeJson;
+    }
+
+    public void setIncludeJson(boolean includeJson) {
+        this.includeJson = includeJson;
+    }
 }
 

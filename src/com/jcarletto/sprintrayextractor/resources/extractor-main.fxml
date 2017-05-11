@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckMenuItem?>
@@ -16,7 +20,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jcarletto.sprintrayextractor.Controller">
+<VBox prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jcarletto.sprintrayextractor.Controller">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -24,9 +28,13 @@
           <items>
             <MenuItem fx:id="menu_item_Open" mnemonicParsing="false" text="Open…" />
             <SeparatorMenuItem mnemonicParsing="false" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem fx:id="menu_item_Export_to_Folder" mnemonicParsing="false" text="Export to Folder" />
             <MenuItem fx:id="menu_item_Export_Zip" mnemonicParsing="false" text="Export Zip" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
             <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="menu_item_SaveSettings" mnemonicParsing="false" text="Save Printer Profile" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
             <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem fx:id="menu_item_Quit" mnemonicParsing="false" text="Quit" />
           </items>
@@ -39,8 +47,12 @@
                         <MenuItem fx:id="menu_item_run_slide_show" mnemonicParsing="false" text="Run slideshow" />
                     </items>
                   </Menu>
-                  <MenuItem fx:id="menu_item_SaveSettings" mnemonicParsing="false" text="Save Printer Profile" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
                   <CheckMenuItem fx:id="check_menu_item_realistic_scaling" mnemonicParsing="false" text="Realistic Image Scaling" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <CheckMenuItem fx:id="check_menu_item_include_json" mnemonicParsing="false" text="Include info.json" />
                </items>
             </Menu>
       </menus>

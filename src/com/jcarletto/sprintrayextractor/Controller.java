@@ -1,9 +1,6 @@
 package com.jcarletto.sprintrayextractor;
 
-import com.jcarletto.sprintrayextractor.Util.ImageHelper;
-import com.jcarletto.sprintrayextractor.Util.SSJ_Reader;
-import com.jcarletto.sprintrayextractor.Util.SettingsHelper;
-import com.jcarletto.sprintrayextractor.Util.Zip_Reader;
+import com.jcarletto.sprintrayextractor.Util.*;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -17,16 +14,14 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -76,6 +71,13 @@ public class Controller implements Initializable {
     private TextField text_view_file_resolution;
     @FXML
     private CheckMenuItem check_menu_item_play_slideshow_automatically;
+
+    @FXML
+    private CheckMenuItem check_menu_item_include_json;
+
+    @FXML
+
+
     private boolean autoPlaySlideShow = true;
 
     private Task slideShow;
@@ -91,9 +93,21 @@ public class Controller implements Initializable {
     private ImageHelper imageHelper = new ImageHelper();
     private ZipOutputStream zipOutputStream;
 
+    private Info_Writer info_writer = new Info_Writer();
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
+        check_menu_item_include_json.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                printer.setIncludeJson(newValue);
+                settingsHelper.writeProps(printer.getPrinterSettings());
+            }
+        });
+
+
         slider_slice_picker.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -106,7 +120,7 @@ public class Controller implements Initializable {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 printer.setRealisticScaling(newValue);
-                //System.out.println("realistic scaling is " + newValue + " but printer shows " + printer.getRealisticScaling());
+
                 settingsHelper.writeProps(printer.getPrinterSettings());
             }
         });
@@ -115,7 +129,7 @@ public class Controller implements Initializable {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 printer.setAutoPlay(newValue);
-                //System.out.println("autoplay slide show is " + newValue + " but printer shows " + printer.getAutoPlaySlideShow());
+
                 settingsHelper.writeProps(printer.getPrinterSettings());
             }
         });
@@ -266,7 +280,7 @@ public class Controller implements Initializable {
                 slideShow.messageProperty().addListener(new ChangeListener<String>() {
                     @Override
                     public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                        System.out.println(oldValue);
+
                         pagination.setCurrentPageIndex(Integer.parseInt(newValue));
                     }
                 });
@@ -375,7 +389,7 @@ public class Controller implements Initializable {
             public void handle(ActionEvent event) {
                 if (ssj_reader.getSsjFile() != null) {
 
-                    System.out.println("Total number of records : " + ssj_reader.getPngBytes().size());
+
                     DirectoryChooser directoryChooser = new DirectoryChooser();
                     directoryChooser.setInitialDirectory(new File(printer.getLastSaveLocation()));
                     directoryChooser.setTitle("Please choose a directory for export");
@@ -484,7 +498,7 @@ public class Controller implements Initializable {
         byte[] b = ssj_reader.getPngBytes().get(index);
         String fileName = String.format("%05d", index + 1) + ".png";
         int padding = imageHelper.getPaddingValue(image.getHeight(), printer.getyPixels());
-        //System.out.println("Padding Value : " + padding);
+
         Path path = Paths.get(folder.getPath(), fileName);
         File pngFile = path.toFile();
         Double xPixels = printer.getxPixels();
@@ -492,7 +506,8 @@ public class Controller implements Initializable {
 
         try {
             if (!pngFile.exists()) {
-                System.out.println("Scaling at " + printer.getResScale());
+
+
                 imageHelper.processForFolder(ssj_reader.getStreamFromIndex(b), xPixels.intValue(), yPixels.intValue(), printer.getResScale(), padding, printer.getAntiAliasPasses(), pngFile);
             }
         } catch (IllegalArgumentException e) {
@@ -515,14 +530,15 @@ public class Controller implements Initializable {
                 Image img = model.getImage(param);
                 ImageView view = new ImageView(img);
                 view.setPreserveRatio(true);
-                System.out.println("Realistic Scaling is " + printer.getRealisticScaling());
+
                 if (printer.getRealisticScaling()) {
                     Double scale = imageHelper.scaleImageForScreen(printer.getSsjRes());
                     scaledWidth = img.getWidth() * scale;
                 } else {
                     scaledWidth = pagination.getWidth();
                 }
-                //System.out.println("Scaling with " + scale  + " to a width of " + scaledWidth);
+
+
                 view.setFitWidth(scaledWidth);
 
 
@@ -545,7 +561,7 @@ public class Controller implements Initializable {
             text_view_file_y_pixels.setText(String.valueOf(printer.getSsjYPixels()));
 
             check_menu_item_realistic_scaling.setSelected(printer.getRealisticScaling());
-
+            check_menu_item_include_json.setSelected(printer.getIncludeJson());
             check_menu_item_play_slideshow_automatically.setSelected(printer.getAutoPlaySlideShow());
             autoPlaySlideShow = check_menu_item_play_slideshow_automatically.isSelected();
 
@@ -600,7 +616,7 @@ public class Controller implements Initializable {
     }
 
     public Task createExportFolderWorker(Printer printer, Image image, File file, int pngBytesSize) {
-        System.out.println("in worker");
+
         return new Task() {
 
             @Override
@@ -628,24 +644,33 @@ public class Controller implements Initializable {
             @Override
             protected Object call() throws Exception {
 
+                Info_Writer info_writer = new Info_Writer();
 
                 for (int x = 0; x < ssj_reader.getPngBytes().size() - 1; x++) {
                     if (isCancelled()) {
                         zipOutputStream.close();
                         break;
                     }
-                    System.out.println("Converting to " + printer.getSsjRes() + " by scaling with " + printer.getResScale());
+
                     try {
                         String fileName = String.format("%05d", x + 1) + ".png";
                         zipOutputStream.putNextEntry(new ZipEntry(fileName));
                         ImageHelper helper = new ImageHelper();
+
                         Double xPixels = printer.getxPixels();
                         Double yPixels = printer.getyPixels();
-                        int padding = helper.getPaddingValue(model.getImage(pagination.getCurrentPageIndex()).getHeight(), yPixels);
+                        ByteArrayInputStream bis = new ByteArrayInputStream(ssj_reader.getPngBytes().get(x));
+                        Image curImage = new Image(bis);
+                        int padding = helper.getPaddingValue(curImage.getHeight(), yPixels);
 
+                        if (printer.getIncludeJson()) {
+                            int pixels = imageHelper.countPixelsOfAColor(curImage, Color.WHITE);
+                            double area = imageHelper.areaOfPixelsInMMSq(pixels, printer.getSsjRes());
+                            info_writer.writeInfo(area, pixels);
+                        }
 
                         zipOutputStream.write(helper.processForZip(ssj_reader.getPngBytes().get(x), xPixels.intValue(), yPixels.intValue(), printer.getResScale(), padding, printer.getAntiAliasPasses()));
-                        //zipOutputStream.write(ssj_reader.getPngBytes().get(x));
+
                         zipOutputStream.closeEntry();
 
 
@@ -659,12 +684,20 @@ public class Controller implements Initializable {
 
                 }
 
+                if (printer.getIncludeJson()) {
+                    String filename = "info.json";
+                    zipOutputStream.putNextEntry(new ZipEntry(filename));
+                    zipOutputStream.write(info_writer.getJsonInfo().getBytes());
+                    zipOutputStream.closeEntry();
+                }
+
                 zipOutputStream.close();
+
                 return true;
             }
-        }
+        };
 
-                ;
+
     }
 
     private void openSSJFile(File file) {

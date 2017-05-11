@@ -1,4 +1,6 @@
-package com.jcarletto.sprintrayextractor;
+package com.jcarletto.sprintrayextractor.Util;
+
+import com.jcarletto.sprintrayextractor.Printer;
 
 import java.io.*;
 import java.util.ArrayList;

@@ -1,5 +1,9 @@
 package com.jcarletto.sprintrayextractor;
 
+import com.jcarletto.sprintrayextractor.Util.ImageHelper;
+import com.jcarletto.sprintrayextractor.Util.SSJ_Reader;
+import com.jcarletto.sprintrayextractor.Util.SettingsHelper;
+import com.jcarletto.sprintrayextractor.Util.Zip_Reader;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -31,6 +35,7 @@ import java.util.ResourceBundle;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+
 public class Controller implements Initializable {
 
     @FXML
@@ -45,7 +50,8 @@ public class Controller implements Initializable {
     private MenuItem menu_item_SaveSettings;
     @FXML
     private Pagination pagination;
-
+    @FXML
+    private CheckMenuItem check_menu_item_realistic_scaling;
     @FXML
     private TextField text_view_x_pixels;
     @FXML
@@ -93,6 +99,24 @@ public class Controller implements Initializable {
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
 
                 pagination.setCurrentPageIndex(newValue.intValue());
+            }
+        });
+
+        check_menu_item_realistic_scaling.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                printer.setRealisticScaling(newValue);
+                //System.out.println("realistic scaling is " + newValue + " but printer shows " + printer.getRealisticScaling());
+                settingsHelper.writeProps(printer.getPrinterSettings());
+            }
+        });
+
+        check_menu_item_play_slideshow_automatically.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                printer.setAutoPlay(newValue);
+                //System.out.println("autoplay slide show is " + newValue + " but printer shows " + printer.getAutoPlaySlideShow());
+                settingsHelper.writeProps(printer.getPrinterSettings());
             }
         });
 
@@ -146,7 +170,7 @@ public class Controller implements Initializable {
             public void handle(ActionEvent event) {
 
                 FileChooser saveFileDialog = new FileChooser();
-                saveFileDialog.setInitialDirectory(new File(System.getProperty("user.home") + "/Desktop"));
+                saveFileDialog.setInitialDirectory(new File(printer.getLastSaveLocation()));
                 saveFileDialog.setTitle("Save this Export to .zip");
                 saveFileDialog.getExtensionFilters().add(new FileChooser.ExtensionFilter("Zip Files", "*.zip"));
                 File file = saveFileDialog.showSaveDialog(null);
@@ -160,7 +184,7 @@ public class Controller implements Initializable {
                     try {
 
                         zipOutputStream = new ZipOutputStream(new FileOutputStream(file));
-                        zipOutputStream.setLevel(1);
+
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -180,7 +204,7 @@ public class Controller implements Initializable {
                             progress_bar.progressProperty().unbind();
                             progress_bar.progressProperty().setValue(0);
                             label_progress.textProperty().unbind();
-                            label_progress.setText("");
+                            label_progress.setText("!");
 
                         }
                     });
@@ -192,7 +216,7 @@ public class Controller implements Initializable {
                             progress_bar.progressProperty().unbind();
                             progress_bar.progressProperty().setValue(0);
                             label_progress.textProperty().unbind();
-                            label_progress.setText("");
+                            label_progress.setText("!");
 
                         }
                     });
@@ -468,7 +492,8 @@ public class Controller implements Initializable {
 
         try {
             if (!pngFile.exists()) {
-                imageHelper.process(ssj_reader.getStreamFromIndex(b), xPixels.intValue(), yPixels.intValue(), printer.resScale(), padding, printer.getAntiAliasPasses(), pngFile);
+                System.out.println("Scaling at " + printer.getResScale());
+                imageHelper.processForFolder(ssj_reader.getStreamFromIndex(b), xPixels.intValue(), yPixels.intValue(), printer.getResScale(), padding, printer.getAntiAliasPasses(), pngFile);
             }
         } catch (IllegalArgumentException e) {
             System.out.println("Slice # " + index + " could not be exported. Something went wrong!");
@@ -484,10 +509,21 @@ public class Controller implements Initializable {
 
         pagination.setPageFactory(new Callback<Integer, Node>() {
             @Override
+
             public Node call(Integer param) {
-                ImageView view = new ImageView(model.getImage(param));
+                Double scaledWidth = null;
+                Image img = model.getImage(param);
+                ImageView view = new ImageView(img);
                 view.setPreserveRatio(true);
-                view.setFitWidth(pagination.getWidth());
+                System.out.println("Realistic Scaling is " + printer.getRealisticScaling());
+                if (printer.getRealisticScaling()) {
+                    Double scale = imageHelper.scaleImageForScreen(printer.getSsjRes());
+                    scaledWidth = img.getWidth() * scale;
+                } else {
+                    scaledWidth = pagination.getWidth();
+                }
+                //System.out.println("Scaling with " + scale  + " to a width of " + scaledWidth);
+                view.setFitWidth(scaledWidth);
 
 
                 view.setFitHeight(pagination.getHeight());
@@ -508,7 +544,10 @@ public class Controller implements Initializable {
             text_view_file_x_pixels.setText(String.valueOf(printer.getSsjXPixels()));
             text_view_file_y_pixels.setText(String.valueOf(printer.getSsjYPixels()));
 
+            check_menu_item_realistic_scaling.setSelected(printer.getRealisticScaling());
+
             check_menu_item_play_slideshow_automatically.setSelected(printer.getAutoPlaySlideShow());
+            autoPlaySlideShow = check_menu_item_play_slideshow_automatically.isSelected();
 
             text_view_resolution.setText(String.valueOf(printer.getPrinterXYRes()));
             text_view_x_pixels.setText(String.valueOf(printer.getxPixels()));
@@ -526,6 +565,7 @@ public class Controller implements Initializable {
         menu_item_Export_Zip.setDisable(false);
         menu_item_run_slide_show.setDisable(false);
         slider_slice_picker.setDisable(false);
+        settingsHelper.writeProps(printer.getPrinterSettings());
         //check_menu_item_play_slideshow_automatically.setDisable(false);
     }
 
@@ -591,8 +631,10 @@ public class Controller implements Initializable {
 
                 for (int x = 0; x < ssj_reader.getPngBytes().size() - 1; x++) {
                     if (isCancelled()) {
+                        zipOutputStream.close();
                         break;
                     }
+                    System.out.println("Converting to " + printer.getSsjRes() + " by scaling with " + printer.getResScale());
                     try {
                         String fileName = String.format("%05d", x + 1) + ".png";
                         zipOutputStream.putNextEntry(new ZipEntry(fileName));
@@ -602,7 +644,7 @@ public class Controller implements Initializable {
                         int padding = helper.getPaddingValue(model.getImage(pagination.getCurrentPageIndex()).getHeight(), yPixels);
 
 
-                        zipOutputStream.write(helper.processForZip(ssj_reader.getPngBytes().get(x), xPixels.intValue(), yPixels.intValue(), printer.resScale(), padding, printer.getAntiAliasPasses()));
+                        zipOutputStream.write(helper.processForZip(ssj_reader.getPngBytes().get(x), xPixels.intValue(), yPixels.intValue(), printer.getResScale(), padding, printer.getAntiAliasPasses()));
                         //zipOutputStream.write(ssj_reader.getPngBytes().get(x));
                         zipOutputStream.closeEntry();
 

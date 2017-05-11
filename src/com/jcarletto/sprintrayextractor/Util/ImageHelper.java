@@ -1,4 +1,4 @@
-package com.jcarletto.sprintrayextractor;
+package com.jcarletto.sprintrayextractor.Util;
 
 
 import org.imgscalr.Scalr;
@@ -19,7 +19,7 @@ public class ImageHelper {
 
     public int getPaddingValue(double imageHeight, double printerHeight) {
         Double pad = printerHeight - imageHeight;
-        pad = pad / 2;
+
 
         if (pad <= 0) {
             return 1;
@@ -79,7 +79,33 @@ public class ImageHelper {
     }
 
 
-    public void process(ByteArrayInputStream imageData, int targetWidth, int targetHeight, float scale, int padding, int antiAliasPasses, File file) {
+    public double getScreenWidthInMM() {
+        Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        int pixelPerInch = java.awt.Toolkit.getDefaultToolkit().getScreenResolution();
+
+        double width = screen.getWidth() / pixelPerInch;
+
+
+        return width * 25.4;
+    }
+
+    public double getScreenWidthInPixels() {
+        Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+
+        return screen.getWidth();
+    }
+
+    public double scaleImageForScreen(float imageRes) {
+        //System.out.println("Screen width in pixesl " + getScreenWidthInPixels());
+        //System.out.println("Screen width in mm " + getScreenWidthInMM());
+
+        double scaleRes = (getScreenWidthInMM() * 1000) / getScreenWidthInPixels();
+        //System.out.println("monitor res " + scaleRes);
+        return imageRes / scaleRes;
+    }
+
+
+    public void processForFolder(ByteArrayInputStream imageData, int targetWidth, int targetHeight, float scale, int padding, int antiAliasPasses, File file) {
         BufferedImage slice = getBufferedImageFromStream(imageData);
 
         Float scaledWidth = (float) slice.getWidth() * scale;
@@ -119,8 +145,9 @@ public class ImageHelper {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
             ImageIO.write(slice, "png", outputStream);
-            outputStream.flush();
+
             outBytes = outputStream.toByteArray();
+            outputStream.flush();
             outputStream.close();
 
 

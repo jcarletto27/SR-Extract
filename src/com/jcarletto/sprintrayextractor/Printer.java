@@ -15,6 +15,7 @@ public class Printer {
     final String X_PIXELS = "XPIXELS";
     final String Y_PIXELS = "YPIXELS";
     final String AUTOPLAY_SLIDESHOW = "AUTOPLAY_SLIDESHOW";
+    final String REALISTIC_SCALING = "REALISTIC_SCALING";
 
 
     final String SSJ_Y_PIXELS = "SSJ_Y_PIXELS";
@@ -35,6 +36,7 @@ public class Printer {
     private double yPixels = 1080d;
 
     private boolean autoPlay = true;
+    private boolean realisticScaling = true;
 
     private double ssjXPixels = 1280;
     private double ssjYPixels = 800;
@@ -80,17 +82,11 @@ public class Printer {
         list.add(new String[]{SSJ_XY_RES, String.valueOf(getSsjRes())});
 
         list.add(new String[]{AUTOPLAY_SLIDESHOW, String.valueOf(getAutoPlaySlideShow())});
+        list.add(new String[]{REALISTIC_SCALING, String.valueOf(getRealisticScaling())});
+
         list.add(new String[]{LAST_OPEN_LOCATION, String.valueOf(getLastOpenLocation())});
         list.add(new String[]{LAST_SAVE_LOCATION, String.valueOf(getLastSaveLocation())});
         return list;
-    }
-
-    public void setLastOpenLocation(String lastOpenLocation) {
-        this.lastOpenLocation = lastOpenLocation;
-    }
-
-    public void setLastSaveLocation(String lastSaveLocation) {
-        this.lastSaveLocation = lastSaveLocation;
     }
 
     public void setPrinterSettings(List<String[]> settings) {
@@ -123,10 +119,12 @@ public class Printer {
                 case AUTOPLAY_SLIDESHOW:
                     setAutoPlay(Boolean.parseBoolean(s[1]));
                     break;
+                case REALISTIC_SCALING:
+                    setRealisticScaling(Boolean.parseBoolean(s[1]));
+                    break;
             }
         }
     }
-
 
     public void setAutoPlay(boolean autoPlay) {
         this.autoPlay = autoPlay;
@@ -203,10 +201,9 @@ public class Printer {
         this.antiAliasPasses = antiAliasPasses;
     }
 
+    public float getResScale() {
 
-    public float resScale() {
-
-        return (ssjRes / printerXYRes);
+        return ((float) ssjRes / (float) printerXYRes);
     }
 
     public void setDefaults() {
@@ -224,8 +221,35 @@ public class Printer {
         return lastOpenLocation;
     }
 
+    public void setLastOpenLocation(String lastOpenLocation) {
+        this.lastOpenLocation = lastOpenLocation;
+    }
+
     public String getLastSaveLocation() {
         return lastSaveLocation;
     }
+
+    public void setLastSaveLocation(String lastSaveLocation) {
+        this.lastSaveLocation = lastSaveLocation;
+    }
+
+    public double getSSJWidthInMM() {
+        Double width = ((double) getSsjRes() * getSsjXPixels()) / 1000;
+        //System.out.println("Width in mm " + width);
+
+        return width;
+
+    }
+
+    public boolean getRealisticScaling() {
+        return realisticScaling;
+    }
+
+    public void setRealisticScaling(boolean realisticScaling) {
+        this.realisticScaling = realisticScaling;
+
+    }
+
+
 }
 

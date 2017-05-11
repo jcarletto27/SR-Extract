@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Pagination?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jcarletto.sprintrayextractor.Controller">
+<VBox prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jcarletto.sprintrayextractor.Controller">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -40,6 +40,7 @@
                     </items>
                   </Menu>
                   <MenuItem fx:id="menu_item_SaveSettings" mnemonicParsing="false" text="Save Printer Profile" />
+                  <CheckMenuItem fx:id="check_menu_item_realistic_scaling" mnemonicParsing="false" text="Realistic Image Scaling" />
                </items>
             </Menu>
       </menus>
@@ -47,7 +48,7 @@
     <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="354.0" prefWidth="640.0" VBox.vgrow="ALWAYS">
       <children>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-            <Pagination fx:id="pagination" layoutX="192.0" maxPageIndicatorCount="1" style="-fx-skin: 'com.jcarletto.sprintrayextractor.PaginationSkin'" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="55.0" />
+            <Pagination fx:id="pagination" layoutX="192.0" maxPageIndicatorCount="1" style="-fx-skin: 'com.jcarletto.sprintrayextractor.Util.PaginationSkin'" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="55.0" />
             <VBox alignment="CENTER_LEFT" maxHeight="100.0" minHeight="-Infinity" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
                   <HBox alignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" VBox.vgrow="ALWAYS">

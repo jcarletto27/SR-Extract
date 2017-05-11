@@ -23,7 +23,7 @@
  * questions.
  */
 
-package com.jcarletto.sprintrayextractor;
+package com.jcarletto.sprintrayextractor.Util;
 
 import com.sun.javafx.css.converters.BooleanConverter;
 import com.sun.javafx.css.converters.EnumConverter;

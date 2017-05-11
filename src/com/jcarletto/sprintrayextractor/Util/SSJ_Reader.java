@@ -1,4 +1,4 @@
-package com.jcarletto.sprintrayextractor;
+package com.jcarletto.sprintrayextractor.Util;
 
 
 import org.apache.commons.io.IOUtils;

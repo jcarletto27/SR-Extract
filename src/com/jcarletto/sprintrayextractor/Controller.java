@@ -14,6 +14,8 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -75,8 +77,6 @@ public class Controller implements Initializable {
     @FXML
     private CheckMenuItem check_menu_item_include_json;
 
-    @FXML
-
 
     private boolean autoPlaySlideShow = true;
 
@@ -94,10 +94,14 @@ public class Controller implements Initializable {
     private ZipOutputStream zipOutputStream;
 
     private Info_Writer info_writer = new Info_Writer();
-
+    private boolean isFileLoaded = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
+        menu_item_Open.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCodeCombination.CONTROL_DOWN));
+        menu_item_Quit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCodeCombination.CONTROL_DOWN));
+        menu_item_run_slide_show.setAccelerator(new KeyCodeCombination(KeyCode.F5));
 
         check_menu_item_include_json.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -122,6 +126,13 @@ public class Controller implements Initializable {
                 printer.setRealisticScaling(newValue);
 
                 settingsHelper.writeProps(printer.getPrinterSettings());
+                if (isFileLoaded) {
+                    if (ssj_reader.getSsjFile() != null) {
+                        setPaginationFactory(ssj_reader.getPngBytes());
+                    } else {
+                        setPaginationFactory(zip_reader.getPngBytes());
+                    }
+                }
             }
         });
 
@@ -131,6 +142,17 @@ public class Controller implements Initializable {
                 printer.setAutoPlay(newValue);
 
                 settingsHelper.writeProps(printer.getPrinterSettings());
+                if (isFileLoaded && newValue) {
+                    slideShow = createSlideShowWorker(pagination.getPageCount() - 1);
+                    slideShow.messageProperty().addListener(new ChangeListener<String>() {
+                        @Override
+                        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+
+                            pagination.setCurrentPageIndex(Integer.parseInt(newValue));
+                        }
+                    });
+                    new Thread(slideShow).start();
+                }
             }
         });
 
@@ -146,6 +168,12 @@ public class Controller implements Initializable {
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 printer.setPrinterXYRes(Float.parseFloat(newValue));
 
+            }
+        });
+        text_view_file_resolution.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                printer.setSsjRes(Float.parseFloat(newValue));
             }
         });
 
@@ -276,6 +304,7 @@ public class Controller implements Initializable {
             @Override
             public void handle(ActionEvent event) {
 
+
                 slideShow = createSlideShowWorker(pagination.getPageCount() - 1);
                 slideShow.messageProperty().addListener(new ChangeListener<String>() {
                     @Override
@@ -322,6 +351,8 @@ public class Controller implements Initializable {
 
 
                         openSSJFile(file);
+                        printer.setSsjRes(Float.parseFloat(ssj_reader.getSsjFileInfo()));
+                        text_view_file_resolution.textProperty().setValue(String.valueOf(Double.valueOf(ssj_reader.getSsjFileInfo())));
                         setPaginationFactory(ssj_reader.getPngBytes());
                         fileLoaded();
                         slideShow = createSlideShowWorker(pagination.getPageCount() - 1);
@@ -583,10 +614,12 @@ public class Controller implements Initializable {
         slider_slice_picker.setDisable(false);
         settingsHelper.writeProps(printer.getPrinterSettings());
         //check_menu_item_play_slideshow_automatically.setDisable(false);
+        isFileLoaded = true;
     }
 
     private void fileNotLoaded() {
         // check_menu_item_play_slideshow_automatically.setDisable(true);
+        isFileLoaded = false;
         slider_slice_picker.setDisable(true);
         button_cancel.setDisable(true);
         button_cancel.setVisible(false);
@@ -644,7 +677,7 @@ public class Controller implements Initializable {
             @Override
             protected Object call() throws Exception {
 
-                Info_Writer info_writer = new Info_Writer();
+                info_writer = new Info_Writer();
 
                 for (int x = 0; x < ssj_reader.getPngBytes().size() - 1; x++) {
                     if (isCancelled()) {

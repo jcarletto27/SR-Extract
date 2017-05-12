@@ -242,7 +242,7 @@ public class Printer {
 
     public double getSSJWidthInMM() {
         Double width = ((double) getSsjRes() * getSsjXPixels()) / 1000;
-        //System.out.println("Width in mm " + width);
+
 
         return width;
 

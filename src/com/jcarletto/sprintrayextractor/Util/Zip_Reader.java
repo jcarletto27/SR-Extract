@@ -72,7 +72,7 @@ public class Zip_Reader {
 
             if (FilenameUtils.getExtension(currentEntry).equals("png")) {
                 int entryNumber = Integer.parseInt(currentEntry.replace(".png", "")) - 1;
-                System.out.println("Entry Number : " + entryNumber);
+                
                 try {
                     is = zipFile.getInputStream(entry);
                     outBytes.set(entryNumber, getImage(is));

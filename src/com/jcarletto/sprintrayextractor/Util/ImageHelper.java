@@ -160,7 +160,7 @@ public class ImageHelper {
 
     public int countPixelsOfAColor(Image image, Color color) {
         int count = 0;
-        // System.out.println("Width = " + image.getWidth() + "  Height = " + image.getHeight());
+
         for (int w = 0; w < image.getWidth(); w++) {
             for (int h = 0; h < image.getHeight(); h++) {
                 Color c = image.getPixelReader().getColor(w, h);

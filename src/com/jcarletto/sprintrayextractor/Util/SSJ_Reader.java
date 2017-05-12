@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,22 +24,23 @@ public class SSJ_Reader {
     private final byte[] IEND = "IEND".getBytes();
 
     private File ssjFile;
-    private String contents;
+
     private byte[] byteArray;
     private List<byte[]> pngBytes;
+    private String ssjFileInfo = "";
 
     public SSJ_Reader(File file) {
-//        System.out.println("Delim : " + new String(delimiter));
-        // System.out.println("IEND : " + new String(IEND));
+
 
         setSsjFile(file);
         openFile();
 
-        System.out.println(pngBytes.size());
+
+
+        ssjFileInfo = parseInfo(pngBytes.get(0)).replace(" ", "").split("microns")[0].split("at")[1];
+
+
         pngBytes.remove(0);
-        //pngBytes.remove(getPngBytes().size()-1);
-       // readFileContents();
-        System.out.println(pngBytes.size());
 
 
     }
@@ -101,6 +103,25 @@ public class SSJ_Reader {
         }
         arrays.add(Arrays.copyOfRange(byteArray, begin, byteArray.length));
         return arrays;
+    }
+
+    private String parseInfo(byte[] bytes) {
+        List<Byte> newArray = new ArrayList<>();
+        byte space = (byte) 0x00;
+        for (byte b : bytes) {
+            if (b != space) {
+                newArray.add(b);
+
+            }
+        }
+        Byte[] fromList = newArray.toArray(new Byte[newArray.size()]);
+        String fromArray = new String(ArrayUtils.toPrimitive(fromList));
+
+        return fromArray;
+    }
+
+    public String getSsjFileInfo() {
+        return ssjFileInfo;
     }
 
 

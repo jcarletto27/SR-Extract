@@ -5,6 +5,7 @@ Note: This app can only load SSJ files that have the "Enhanced" box ticked in Ra
 
 
 Features:
+
 	Accepts drag and dropped files of both Zip and SSJ.
 	
 	Displays a quick slide show to validate imported images. (Default ON)
